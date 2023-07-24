@@ -9,10 +9,15 @@ use Illuminate\Support\Facades\Mail;
 
 class production_lineController extends Controller
 {
+   protected $destinatarios = [
+      'aldoan60@gmail.com',
+      'aldoguadalupenegretearmenta@gmail.com',
+      'aldoguadalupe.armenta@zkw.mx'
+   ];
    public function index($line_number){
       $production_lines = production_line::where('line_number', $line_number)->first();
     //$production_lines = production_line::all();
-    return response()->json($production_lines);
+      return response()->json($production_lines);
    }
    public function showAllLines(){
       $production_lines = production_lines_status::all();
@@ -29,15 +34,16 @@ class production_lineController extends Controller
       $production_line->stopped_at = now();
       $production_line->current_status = 'STOPPED';
       $production_line->save();
-      $this->andonActiveEmail($production_line);
       return response()->json( $production_line);
       }else {
          return "line number doesn't exist";
       }
    }
    public function andonUnactivationUpdate($line_number, $andonTime){
-      
       $production_line = production_lines_status::where('line_number', $line_number)->first();
+      
+      
+
       if ($production_line) {
 
          $production_line->reason = 'PRODUCTION';
@@ -46,12 +52,35 @@ class production_lineController extends Controller
          $production_line->current_status = 'RUNNING';
          $production_line->cumulative_stoppage_time = $andonTime;
          $production_line->save();
-         $this->andonActiveEmail($production_line);
          return response()->json( $production_line);
          
       }else{
          return "line number doesn't exist";
       }
+   }
+   /**
+ * 
+ * Envía una notificación por correo electrónico.
+ * Si la línea de producción está actualmente en funcionamiento, se envía un correo electrónico con el asunto
+ * "Notificaciones de Andon 2.0: la línea [número_de_línea] está en funcionamiento".
+ * Si la línea de producción está detenida, se envía un correo electrónico con el asunto
+ * "Notificaciones de Andon 2.0: la línea [número_de_línea] está detenida".
+ * 
+ * @param {string} line_number - El número de la línea de producción.
+ */
+   public function sendMail($line_number){
+      $production_line = production_lines_status::where('line_number', $line_number)->first();
+
+      if ($production_line->current_status === 'RUNNING') {
+         $subjectAndonActive = 'Andon 2.0 notifications: line ' .$line_number. ' is now running';
+         $correo = new sendNotifications($production_line, $subjectAndonActive);
+         Mail::to($this->destinatarios)->send($correo);
+      }else {
+         $subjectAndonUnctive = 'Andon 2.0 notifications: line ' .$line_number. ' is stopped';
+         $correo = new sendNotifications($production_line, $subjectAndonUnctive);
+         Mail::to($this->destinatarios)->send($correo);
+      }
+
    }
 
    public function getCST($line_number){
@@ -68,12 +97,7 @@ class production_lineController extends Controller
       }
    }
 
-   public function andonActiveEmail($production_line){
-      
-      $correo = new sendNotifications($production_line);
-      Mail::to('AldoGuadalupe.Armenta@zkw.mx')->send($correo);
-      return 'correo enviado';
-   }
+
    public function updateDates(){
       $PL = production_lines_status::all();
       
