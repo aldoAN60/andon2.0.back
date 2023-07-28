@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Mail;
 
 class production_lineController extends Controller
 {
+   /**
+ * variable que guarda los correos electronicos de quienes se les notificara sobre la activacion o desactivacion del andon
+    */
    protected $destinatarios = [
       'aldoan60@gmail.com',
       'aldoguadalupenegretearmenta@gmail.com',
@@ -30,7 +33,7 @@ class production_lineController extends Controller
       
       if ($production_line) {
       
-      $production_line->reason = $reason;// $request->input('reason');
+      $production_line->reason = $reason;
       $production_line->stopped_at = now();
       $production_line->current_status = 'STOPPED';
       $production_line->save();

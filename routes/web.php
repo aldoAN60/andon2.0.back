@@ -12,12 +12,6 @@ use App\Http\Controllers\production_lineController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-/*Route::get('/', function () {
-    return view('welcome');
-});*/
-
-//Route::get('/', [production_lineController::class,'index'])->name('index');
 Route::get('/api/production_lines/{line_number}',[production_lineController::class,'index'])->name('index');
 route::get('/api/dashboard-maintenance', [production_lineController::class, 'showAllLines'])->name('allLines');
 route::get('/updateDates', [production_lineController::class, 'updateDates'])->name('updateDates');
